@@ -122,7 +122,7 @@ export default function Index() {
                 cy={CENTER}
                 r={RADIUS}
                 fill="none"
-                stroke="#999"
+                stroke="#ccc"
                 strokeWidth="1"
                 strokeDasharray="3 8"
               />
