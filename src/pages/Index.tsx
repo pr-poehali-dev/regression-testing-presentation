@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
 type IconName = "GitMerge" | "Bug" | "Sparkles" | "RefreshCw" | "FileText" | "Layers";
@@ -76,7 +76,16 @@ function ArrowMarker({ id, color }: { id: string; color: string }) {
 
 export default function Index() {
   const [active, setActive] = useState<number | null>(null);
+  const [hovered, setHovered] = useState<number | null>(null);
+  const [pulse, setPulse] = useState(0);
   const activeTrigger = triggers.find((t) => t.id === active);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPulse((p) => p + 1);
+    }, 2400);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-white flex flex-col select-none" style={{ fontFamily: '"Golos Text", sans-serif' }}>
@@ -109,12 +118,31 @@ export default function Index() {
               className="overflow-visible"
             >
               <defs>
-                <ArrowMarker id="arrow-default" color="#888" />
+                <ArrowMarker id="arrow-default" color="#bbb" />
                 <ArrowMarker id="arrow-active" color="#1a1a1a" />
+                <ArrowMarker id="arrow-hover" color="#555" />
+                <filter id="shadow-node" x="-30%" y="-30%" width="160%" height="160%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#1a1a1a" floodOpacity="0.18" />
+                </filter>
               </defs>
 
               {/* Outer faint ring */}
-              <circle cx={CENTER} cy={CENTER} r={RADIUS + 62} fill="none" stroke="#ddd" strokeWidth="1" />
+              <circle cx={CENTER} cy={CENTER} r={RADIUS + 62} fill="none" stroke="#e8e8e8" strokeWidth="1" />
+
+              {/* Pulse ring around center */}
+              <circle
+                key={pulse}
+                cx={CENTER}
+                cy={CENTER}
+                r={INNER_R + 4}
+                fill="none"
+                stroke="#1a1a1a"
+                strokeWidth="1"
+                opacity="0.15"
+                style={{
+                  animation: "pulse-ring 2.4s ease-out forwards",
+                }}
+              />
 
               {/* Dashed orbit ring */}
               <circle
@@ -131,8 +159,8 @@ export default function Index() {
               {triggers.map((t) => {
                 const nodePos = polarToCartesian(CENTER, CENTER, RADIUS, t.angle);
                 const isActive = active === t.id;
+                const isHovered = hovered === t.id;
 
-                // Start: edge of outer node (toward center)
                 const dx = CENTER - nodePos.x;
                 const dy = CENTER - nodePos.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
@@ -141,9 +169,11 @@ export default function Index() {
 
                 const x1 = nodePos.x + nx * (NODE_R + 2);
                 const y1 = nodePos.y + ny * (NODE_R + 2);
-                // End: just outside inner circle (arrowhead lands at edge)
                 const x2 = CENTER - nx * (INNER_R + 8);
                 const y2 = CENTER - ny * (INNER_R + 8);
+
+                const arrowColor = isActive ? "#1a1a1a" : isHovered ? "#555" : "#bbb";
+                const markerId = isActive ? "url(#arrow-active)" : isHovered ? "url(#arrow-hover)" : "url(#arrow-default)";
 
                 return (
                   <line
@@ -152,10 +182,10 @@ export default function Index() {
                     y1={y1}
                     x2={x2}
                     y2={y2}
-                    stroke={isActive ? "#1a1a1a" : "#888"}
-                    strokeWidth={isActive ? 2 : 1.2}
-                    markerEnd={isActive ? "url(#arrow-active)" : "url(#arrow-default)"}
-                    style={{ transition: "all 0.35s ease" }}
+                    stroke={arrowColor}
+                    strokeWidth={isActive ? 2 : isHovered ? 1.5 : 1}
+                    markerEnd={markerId}
+                    style={{ transition: "all 0.3s ease" }}
                   />
                 );
               })}
@@ -164,18 +194,42 @@ export default function Index() {
               {triggers.map((t) => {
                 const pos = polarToCartesian(CENTER, CENTER, RADIUS, t.angle);
                 const isActive = active === t.id;
+                const isHovered = hovered === t.id;
+                const scale = isHovered && !isActive ? 1.07 : 1;
                 return (
-                  <circle
+                  <g
                     key={`node-${t.id}`}
-                    cx={pos.x}
-                    cy={pos.y}
-                    r={NODE_R}
-                    fill={isActive ? "#1a1a1a" : "white"}
-                    stroke={isActive ? "#1a1a1a" : "#888"}
-                    strokeWidth="1.5"
-                    style={{ transition: "all 0.35s ease", cursor: "pointer" }}
+                    transform={`translate(${pos.x},${pos.y}) scale(${scale}) translate(${-pos.x},${-pos.y})`}
+                    style={{ transition: "transform 0.25s ease", cursor: "pointer" }}
                     onClick={() => setActive(active === t.id ? null : t.id)}
-                  />
+                    onMouseEnter={() => setHovered(t.id)}
+                    onMouseLeave={() => setHovered(null)}
+                  >
+                    <circle
+                      cx={pos.x}
+                      cy={pos.y}
+                      r={NODE_R}
+                      fill={isActive ? "#1a1a1a" : isHovered ? "#f7f7f7" : "white"}
+                      stroke={isActive ? "#1a1a1a" : isHovered ? "#555" : "#ccc"}
+                      strokeWidth={isActive ? "2" : "1.5"}
+                      filter={isActive ? "url(#shadow-node)" : undefined}
+                      style={{ transition: "all 0.25s ease" }}
+                    />
+                    {/* Node number */}
+                    <text
+                      x={pos.x + NODE_R - 14}
+                      y={pos.y - NODE_R + 14}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fill={isActive ? "rgba(255,255,255,0.4)" : "#ccc"}
+                      fontSize="8"
+                      fontFamily='"Golos Text", sans-serif'
+                      fontWeight="600"
+                      style={{ transition: "fill 0.25s", pointerEvents: "none", letterSpacing: "0.05em" }}
+                    >
+                      {String(t.id).padStart(2, "0")}
+                    </text>
+                  </g>
                 );
               })}
 
@@ -190,7 +244,7 @@ export default function Index() {
                 const blockStartY = pos.y - blockH / 2;
 
                 return (
-                  <g key={`label-${t.id}`} style={{ cursor: "pointer" }} onClick={() => setActive(active === t.id ? null : t.id)}>
+                  <g key={`label-${t.id}`} style={{ cursor: "pointer" }} onClick={() => setActive(active === t.id ? null : t.id)} onMouseEnter={() => setHovered(t.id)} onMouseLeave={() => setHovered(null)}>
                     {/* Icon via foreignObject */}
                     <foreignObject
                       x={pos.x - 11}
@@ -241,10 +295,12 @@ export default function Index() {
               })}
 
               {/* Center circle */}
-              <circle cx={CENTER} cy={CENTER} r={INNER_R} fill="white" stroke="#1a1a1a" strokeWidth="2" />
+              <circle cx={CENTER} cy={CENTER} r={INNER_R + 4} fill="none" stroke="#e8e8e8" strokeWidth="1" />
+              <circle cx={CENTER} cy={CENTER} r={INNER_R} fill="white" stroke="#1a1a1a" strokeWidth="1.5" />
               <circle cx={CENTER} cy={CENTER} r={62} fill="#1a1a1a" />
-              <text x={CENTER} y={CENTER - 9} textAnchor="middle" fill="white" fontSize="10" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="0.3">Регрессионное</text>
-              <text x={CENTER} y={CENTER + 9} textAnchor="middle" fill="white" fontSize="10" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="0.3">тестирование</text>
+              <text x={CENTER} y={CENTER - 11} textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="7.5" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="1.5">РЕГРЕССИЯ</text>
+              <line x1={CENTER - 18} y1={CENTER} x2={CENTER + 18} y2={CENTER} stroke="rgba(255,255,255,0.15)" strokeWidth="0.75" />
+              <text x={CENTER} y={CENTER + 13} textAnchor="middle" fill="white" fontSize="10.5" fontFamily='"Golos Text", sans-serif' fontWeight="700" letterSpacing="-0.3">6 триггеров</text>
             </svg>
 
 
