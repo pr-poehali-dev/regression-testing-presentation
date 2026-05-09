@@ -109,12 +109,20 @@ export default function Index() {
               className="overflow-visible"
             >
               <defs>
-                <ArrowMarker id="arrow-default" color="#888" />
+                <ArrowMarker id="arrow-default" color="#aaa" />
                 <ArrowMarker id="arrow-active" color="#1a1a1a" />
+                <filter id="node-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#000" floodOpacity="0.07" />
+                </filter>
+                <filter id="center-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="6" floodColor="#000" floodOpacity="0.15" />
+                </filter>
               </defs>
 
               {/* Outer faint ring */}
-              <circle cx={CENTER} cy={CENTER} r={RADIUS + 62} fill="none" stroke="#ddd" strokeWidth="1" />
+              <circle cx={CENTER} cy={CENTER} r={RADIUS + 62} fill="none" stroke="#ebebeb" strokeWidth="1" />
+              {/* Second outer ring */}
+              <circle cx={CENTER} cy={CENTER} r={RADIUS + 38} fill="none" stroke="#f3f3f3" strokeWidth="0.75" />
 
               {/* Dashed orbit ring */}
               <circle
@@ -122,9 +130,9 @@ export default function Index() {
                 cy={CENTER}
                 r={RADIUS}
                 fill="none"
-                stroke="#ccc"
+                stroke="#d8d8d8"
                 strokeWidth="1"
-                strokeDasharray="3 8"
+                strokeDasharray="4 10"
               />
 
               {/* Arrows from outer nodes → center */}
@@ -152,8 +160,8 @@ export default function Index() {
                     y1={y1}
                     x2={x2}
                     y2={y2}
-                    stroke={isActive ? "#1a1a1a" : "#888"}
-                    strokeWidth={isActive ? 2 : 1.2}
+                    stroke={isActive ? "#1a1a1a" : "#aaa"}
+                    strokeWidth={isActive ? 2 : 1}
                     markerEnd={isActive ? "url(#arrow-active)" : "url(#arrow-default)"}
                     style={{ transition: "all 0.35s ease" }}
                   />
@@ -171,8 +179,9 @@ export default function Index() {
                     cy={pos.y}
                     r={NODE_R}
                     fill={isActive ? "#1a1a1a" : "white"}
-                    stroke={isActive ? "#1a1a1a" : "#888"}
-                    strokeWidth="1.5"
+                    stroke={isActive ? "#1a1a1a" : "#d0d0d0"}
+                    strokeWidth={isActive ? "2" : "1.5"}
+                    filter="url(#node-shadow)"
                     style={{ transition: "all 0.35s ease", cursor: "pointer" }}
                     onClick={() => setActive(active === t.id ? null : t.id)}
                   />
@@ -208,7 +217,7 @@ export default function Index() {
                           justifyContent: "center",
                         }}
                       >
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={isActive ? "white" : "#888"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "stroke 0.3s", display: "block" }}>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke={isActive ? "white" : "#999"} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "stroke 0.3s", display: "block" }}>
                           {t.icon === "GitMerge" && <><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></>}
                           {t.icon === "Bug" && <><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></>}
                           {t.icon === "Sparkles" && <><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></>}
@@ -224,11 +233,11 @@ export default function Index() {
                       <text
                         key={li}
                         x={pos.x}
-                        y={blockStartY + 22 + 5 + li * lineHeight + lineHeight / 2}
+                        y={blockStartY + 22 + 6 + li * lineHeight + lineHeight / 2}
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        fill={isActive ? "white" : "#1a1a1a"}
-                        fontSize="10"
+                        fill={isActive ? "white" : "#222"}
+                        fontSize="10.5"
                         fontFamily='"Golos Text", sans-serif'
                         fontWeight="600"
                         style={{ transition: "fill 0.3s", pointerEvents: "none" }}
@@ -241,10 +250,12 @@ export default function Index() {
               })}
 
               {/* Center circle */}
-              <circle cx={CENTER} cy={CENTER} r={INNER_R} fill="white" stroke="#1a1a1a" strokeWidth="2" />
+              <circle cx={CENTER} cy={CENTER} r={INNER_R + 6} fill="none" stroke="#ebebeb" strokeWidth="1" />
+              <circle cx={CENTER} cy={CENTER} r={INNER_R} fill="white" stroke="#1a1a1a" strokeWidth="1.5" filter="url(#center-shadow)" />
               <circle cx={CENTER} cy={CENTER} r={62} fill="#1a1a1a" />
-              <text x={CENTER} y={CENTER - 9} textAnchor="middle" fill="white" fontSize="10" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="0.3">Регрессионное</text>
-              <text x={CENTER} y={CENTER + 9} textAnchor="middle" fill="white" fontSize="10" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="0.3">тестирование</text>
+              <text x={CENTER} y={CENTER - 12} textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="7" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="2.5">РЕГРЕССИЯ</text>
+              <line x1={CENTER - 20} y1={CENTER - 2} x2={CENTER + 20} y2={CENTER - 2} stroke="rgba(255,255,255,0.12)" strokeWidth="0.75" />
+              <text x={CENTER} y={CENTER + 12} textAnchor="middle" fill="white" fontSize="11" fontFamily='"Golos Text", sans-serif' fontWeight="700" letterSpacing="-0.5">6 триггеров</text>
             </svg>
 
 
