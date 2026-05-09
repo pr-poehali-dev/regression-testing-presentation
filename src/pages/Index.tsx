@@ -1,49 +1,49 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 
-type IconName = "RefreshCw" | "Bug" | "Sparkles" | "GitMerge" | "Settings" | "AlertTriangle";
+type IconName = "GitMerge" | "Bug" | "Sparkles" | "RefreshCw" | "FileText" | "Layers";
 
 const triggers: { id: number; icon: IconName; label: string; description: string; angle: number }[] = [
   {
     id: 1,
-    icon: "RefreshCw",
-    label: "Обновление\nзависимостей",
-    description: "Изменение версий библиотек или фреймворков в проекте требует полной проверки совместимости.",
+    icon: "GitMerge",
+    label: "Слияние\nветок",
+    description: "Merge в основную ветку объединяет изменения нескольких разработчиков — потенциальный источник конфликтов.",
     angle: -90,
   },
   {
     id: 2,
     icon: "Bug",
-    label: "Bug Fix",
+    label: "Исправление\nдефектов",
     description: "Исправление дефекта может затронуть смежную функциональность — регрессия проверяет отсутствие новых поломок.",
     angle: -30,
   },
   {
     id: 3,
     icon: "Sparkles",
-    label: "Новая\nфича",
+    label: "Новый\nфункционал",
     description: "Добавление нового функционала нередко влияет на существующие сценарии работы системы.",
     angle: 30,
   },
   {
     id: 4,
-    icon: "GitMerge",
-    label: "Слияние\nветок",
-    description: "Merge в основную ветку объединяет изменения нескольких разработчиков — потенциальный источник конфликтов.",
+    icon: "RefreshCw",
+    label: "Рефакторинг",
+    description: "Изменение внутренней структуры кода без изменения поведения требует проверки — рефакторинг может сломать логику.",
     angle: 90,
   },
   {
     id: 5,
-    icon: "Settings",
-    label: "Изменение\nконфигурации",
-    description: "Правки в настройках окружения, CI/CD пайплайна или инфраструктуры требуют обязательной проверки.",
+    icon: "FileText",
+    label: "Новые\nтребования",
+    description: "Появление новых требований меняет ожидаемое поведение системы и требует пересмотра существующих тест-кейсов.",
     angle: 150,
   },
   {
     id: 6,
-    icon: "AlertTriangle",
-    label: "Критический\nдефект",
-    description: "Обнаружение дефекта высокого приоритета в продакшне инициирует немедленный запуск регрессии.",
+    icon: "Layers",
+    label: "Изменение\nбизнес-логики",
+    description: "Правки в бизнес-правилах и процессах затрагивают ключевые сценарии — регрессия обязательна.",
     angle: 210,
   },
 ];
@@ -51,25 +51,35 @@ const triggers: { id: number; icon: IconName; label: string; description: string
 const RADIUS = 195;
 const CENTER = 300;
 const SVG_SIZE = 600;
+const NODE_R = 44;
+const INNER_R = 64;
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg * Math.PI) / 180;
-  return {
-    x: cx + r * Math.cos(rad),
-    y: cy + r * Math.sin(rad),
-  };
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function ArrowMarker({ id, color }: { id: string; color: string }) {
+  return (
+    <marker
+      id={id}
+      markerWidth="7"
+      markerHeight="7"
+      refX="5"
+      refY="3.5"
+      orient="auto"
+    >
+      <polygon points="0 0, 7 3.5, 0 7" fill={color} />
+    </marker>
+  );
 }
 
 export default function Index() {
   const [active, setActive] = useState<number | null>(null);
-
   const activeTrigger = triggers.find((t) => t.id === active);
 
   return (
-    <div
-      className="min-h-screen bg-white flex flex-col select-none"
-      style={{ fontFamily: '"Golos Text", sans-serif' }}
-    >
+    <div className="min-h-screen bg-white flex flex-col select-none" style={{ fontFamily: '"Golos Text", sans-serif' }}>
       {/* Header */}
       <header className="px-12 pt-10 flex items-start justify-between">
         <div>
@@ -98,40 +108,59 @@ export default function Index() {
               viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
               className="overflow-visible"
             >
+              <defs>
+                <ArrowMarker id="arrow-default" color="#c8c8c8" />
+                <ArrowMarker id="arrow-active" color="#1a1a1a" />
+              </defs>
+
               {/* Outer faint ring */}
               <circle cx={CENTER} cy={CENTER} r={RADIUS + 52} fill="none" stroke="#f0f0f0" strokeWidth="1" />
 
-              {/* Dashed mid ring */}
+              {/* Dashed orbit ring */}
               <circle
                 cx={CENTER}
                 cy={CENTER}
                 r={RADIUS}
                 fill="none"
-                stroke="#e4e4e4"
+                stroke="#ebebeb"
                 strokeWidth="1"
                 strokeDasharray="3 8"
               />
 
-              {/* Connector lines */}
+              {/* Arrows from outer nodes → center */}
               {triggers.map((t) => {
-                const outer = polarToCartesian(CENTER, CENTER, RADIUS - 4, t.angle);
-                const inner = polarToCartesian(CENTER, CENTER, 64, t.angle);
+                const nodePos = polarToCartesian(CENTER, CENTER, RADIUS, t.angle);
                 const isActive = active === t.id;
+
+                // Start: edge of outer node (toward center)
+                const dx = CENTER - nodePos.x;
+                const dy = CENTER - nodePos.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const nx = dx / dist;
+                const ny = dy / dist;
+
+                const x1 = nodePos.x + nx * (NODE_R + 2);
+                const y1 = nodePos.y + ny * (NODE_R + 2);
+                // End: just outside inner circle (arrowhead lands at edge)
+                const x2 = CENTER - nx * (INNER_R + 8);
+                const y2 = CENTER - ny * (INNER_R + 8);
+
                 return (
                   <line
-                    key={`line-${t.id}`}
-                    x1={inner.x}
-                    y1={inner.y}
-                    x2={outer.x}
-                    y2={outer.y}
-                    stroke={isActive ? "#1a1a1a" : "#e0e0e0"}
-                    strokeWidth={isActive ? 1.5 : 0.8}
+                    key={`arrow-${t.id}`}
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke={isActive ? "#1a1a1a" : "#c8c8c8"}
+                    strokeWidth={isActive ? 1.5 : 0.9}
+                    markerEnd={isActive ? "url(#arrow-active)" : "url(#arrow-default)"}
                     style={{ transition: "all 0.35s ease" }}
                   />
                 );
               })}
 
-              {/* Node circles */}
+              {/* Outer node circles */}
               {triggers.map((t) => {
                 const pos = polarToCartesian(CENTER, CENTER, RADIUS, t.angle);
                 const isActive = active === t.id;
@@ -140,24 +169,63 @@ export default function Index() {
                     key={`node-${t.id}`}
                     cx={pos.x}
                     cy={pos.y}
-                    r={40}
+                    r={NODE_R}
                     fill={isActive ? "#1a1a1a" : "white"}
-                    stroke={isActive ? "#1a1a1a" : "#d8d8d8"}
-                    strokeWidth={isActive ? 0 : 1}
+                    stroke={isActive ? "#1a1a1a" : "#d4d4d4"}
+                    strokeWidth="1"
                     style={{ transition: "all 0.35s ease", cursor: "pointer" }}
                     onClick={() => setActive(active === t.id ? null : t.id)}
                   />
                 );
               })}
 
-              {/* Center inner fill */}
-              <circle cx={CENTER} cy={CENTER} r={64} fill="white" stroke="#1a1a1a" strokeWidth="1.5" />
+              {/* Node labels inside circles */}
+              {triggers.map((t) => {
+                const pos = polarToCartesian(CENTER, CENTER, RADIUS, t.angle);
+                const isActive = active === t.id;
+                const lines = t.label.split("\n");
+                const lineHeight = 11;
+                const totalH = lines.length * lineHeight;
+                const startY = pos.y - totalH / 2 + lineHeight / 2 - 8;
+
+                return (
+                  <g key={`label-${t.id}`} style={{ cursor: "pointer" }} onClick={() => setActive(active === t.id ? null : t.id)}>
+                    {/* Icon placeholder area */}
+                    <foreignObject
+                      x={pos.x - 10}
+                      y={startY - 2}
+                      width={20}
+                      height={20}
+                      style={{ overflow: "visible", pointerEvents: "none" }}
+                    />
+                    {lines.map((line, li) => (
+                      <text
+                        key={li}
+                        x={pos.x}
+                        y={pos.y + (li - (lines.length - 1) / 2) * lineHeight + 10}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill={isActive ? "white" : "#1a1a1a"}
+                        fontSize="8"
+                        fontFamily='"Golos Text", sans-serif'
+                        fontWeight="500"
+                        style={{ transition: "fill 0.3s", pointerEvents: "none" }}
+                      >
+                        {line}
+                      </text>
+                    ))}
+                  </g>
+                );
+              })}
+
+              {/* Center circle */}
+              <circle cx={CENTER} cy={CENTER} r={INNER_R} fill="white" stroke="#1a1a1a" strokeWidth="1.5" />
               <circle cx={CENTER} cy={CENTER} r={55} fill="#1a1a1a" />
-              <text x={CENTER} y={CENTER - 7} textAnchor="middle" fill="white" fontSize="8.5" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="2">REGRESSION</text>
-              <text x={CENTER} y={CENTER + 9} textAnchor="middle" fill="white" fontSize="8.5" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="2">TESTING</text>
+              <text x={CENTER} y={CENTER - 7} textAnchor="middle" fill="white" fontSize="8" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="1.5">REGRESSION</text>
+              <text x={CENTER} y={CENTER + 8} textAnchor="middle" fill="white" fontSize="8" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="1.5">TESTING</text>
             </svg>
 
-            {/* Icon overlays */}
+            {/* Icon overlays above each node */}
             {triggers.map((t, i) => {
               const pos = polarToCartesian(CENTER, CENTER, RADIUS, t.angle);
               const isActive = active === t.id;
@@ -165,38 +233,24 @@ export default function Index() {
                 <button
                   key={`icon-${t.id}`}
                   onClick={() => setActive(active === t.id ? null : t.id)}
-                  className="absolute flex flex-col items-center justify-center gap-1"
+                  className="absolute flex items-center justify-center"
                   style={{
                     left: `${(pos.x / SVG_SIZE) * 100}%`,
                     top: `${(pos.y / SVG_SIZE) * 100}%`,
-                    transform: "translate(-50%, -50%)",
-                    width: 80,
-                    height: 80,
+                    transform: "translate(-50%, -68px)",
+                    width: 24,
+                    height: 24,
                     background: "transparent",
                     border: "none",
                     cursor: "pointer",
-                    animation: `fade-in 0.5s ease-out ${i * 0.09 + 0.2}s both`,
+                    animation: `fade-in 0.5s ease-out ${i * 0.09 + 0.1}s both`,
                   }}
                 >
                   <Icon
                     name={t.icon}
-                    size={17}
-                    style={{ color: isActive ? "white" : "#1a1a1a", transition: "color 0.3s" }}
+                    size={14}
+                    style={{ color: isActive ? "#1a1a1a" : "#aaaaaa", transition: "color 0.3s" }}
                   />
-                  <span
-                    className="text-center leading-tight"
-                    style={{
-                      fontSize: "7.5px",
-                      fontFamily: '"Golos Text", sans-serif',
-                      fontWeight: 500,
-                      color: isActive ? "rgba(255,255,255,0.8)" : "#888",
-                      whiteSpace: "pre-line",
-                      transition: "color 0.3s",
-                      letterSpacing: "0.02em",
-                    }}
-                  >
-                    {t.label}
-                  </span>
                 </button>
               );
             })}
@@ -258,9 +312,7 @@ export default function Index() {
                       key={t.id}
                       onClick={() => setActive(t.id)}
                       className="flex items-center gap-3 text-left group"
-                      style={{
-                        animation: `fade-in 0.4s ease-out ${i * 0.06}s both`,
-                      }}
+                      style={{ animation: `fade-in 0.4s ease-out ${i * 0.06}s both` }}
                     >
                       <span
                         className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-200 group-hover:bg-gray-900"
