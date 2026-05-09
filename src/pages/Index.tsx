@@ -253,9 +253,8 @@ export default function Index() {
               <circle cx={CENTER} cy={CENTER} r={INNER_R + 6} fill="none" stroke="#ebebeb" strokeWidth="1" />
               <circle cx={CENTER} cy={CENTER} r={INNER_R} fill="white" stroke="#1a1a1a" strokeWidth="1.5" filter="url(#center-shadow)" />
               <circle cx={CENTER} cy={CENTER} r={62} fill="#1a1a1a" />
-              <text x={CENTER} y={CENTER - 12} textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="7" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="2.5">РЕГРЕССИЯ</text>
-              <line x1={CENTER - 20} y1={CENTER - 2} x2={CENTER + 20} y2={CENTER - 2} stroke="rgba(255,255,255,0.12)" strokeWidth="0.75" />
-              <text x={CENTER} y={CENTER + 12} textAnchor="middle" fill="white" fontSize="11" fontFamily='"Golos Text", sans-serif' fontWeight="700" letterSpacing="-0.5">6 триггеров</text>
+              <text x={CENTER} y={CENTER - 8} textAnchor="middle" fill="white" fontSize="10" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="0.2">Регрессионное</text>
+              <text x={CENTER} y={CENTER + 8} textAnchor="middle" fill="white" fontSize="10" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="0.2">тестирование</text>
             </svg>
 
 
