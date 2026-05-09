@@ -243,8 +243,8 @@ export default function Index() {
               {/* Center circle */}
               <circle cx={CENTER} cy={CENTER} r={INNER_R} fill="white" stroke="#1a1a1a" strokeWidth="1.5" />
               <circle cx={CENTER} cy={CENTER} r={55} fill="#1a1a1a" />
-              <text x={CENTER} y={CENTER - 7} textAnchor="middle" fill="white" fontSize="8" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="1.5">REGRESSION</text>
-              <text x={CENTER} y={CENTER + 8} textAnchor="middle" fill="white" fontSize="8" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="1.5">TESTING</text>
+              <text x={CENTER} y={CENTER - 8} textAnchor="middle" fill="white" fontSize="8.5" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="0.5">Регрессионное</text>
+              <text x={CENTER} y={CENTER + 8} textAnchor="middle" fill="white" fontSize="8.5" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="0.5">тестирование</text>
             </svg>
 
 
