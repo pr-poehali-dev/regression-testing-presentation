@@ -179,30 +179,52 @@ export default function Index() {
                 );
               })}
 
-              {/* Node labels inside circles */}
+              {/* Node labels + icons inside circles */}
               {triggers.map((t) => {
                 const pos = polarToCartesian(CENTER, CENTER, RADIUS, t.angle);
                 const isActive = active === t.id;
                 const lines = t.label.split("\n");
                 const lineHeight = 11;
-                const totalH = lines.length * lineHeight;
-                const startY = pos.y - totalH / 2 + lineHeight / 2 - 8;
+                // icon 14px + 4px gap + 2 lines text
+                const blockH = 16 + 4 + lines.length * lineHeight;
+                const blockStartY = pos.y - blockH / 2;
 
                 return (
                   <g key={`label-${t.id}`} style={{ cursor: "pointer" }} onClick={() => setActive(active === t.id ? null : t.id)}>
-                    {/* Icon placeholder area */}
+                    {/* Icon via foreignObject */}
                     <foreignObject
-                      x={pos.x - 10}
-                      y={startY - 2}
-                      width={20}
-                      height={20}
+                      x={pos.x - 9}
+                      y={blockStartY}
+                      width={18}
+                      height={18}
                       style={{ overflow: "visible", pointerEvents: "none" }}
-                    />
+                    >
+                      <div
+                        style={{
+                          width: 18,
+                          height: 18,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke={isActive ? "white" : "#555"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "stroke 0.3s", display: "block" }}>
+                          {t.icon === "GitMerge" && <><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></>}
+                          {t.icon === "Bug" && <><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></>}
+                          {t.icon === "Sparkles" && <><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></>}
+                          {t.icon === "RefreshCw" && <><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></>}
+                          {t.icon === "FileText" && <><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></>}
+                          {t.icon === "Layers" && <><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></>}
+                        </svg>
+                      </div>
+                    </foreignObject>
+
+                    {/* Text lines below icon */}
                     {lines.map((line, li) => (
                       <text
                         key={li}
                         x={pos.x}
-                        y={pos.y + (li - (lines.length - 1) / 2) * lineHeight + 10}
+                        y={blockStartY + 18 + 4 + li * lineHeight + lineHeight / 2}
                         textAnchor="middle"
                         dominantBaseline="middle"
                         fill={isActive ? "white" : "#1a1a1a"}
@@ -225,35 +247,7 @@ export default function Index() {
               <text x={CENTER} y={CENTER + 8} textAnchor="middle" fill="white" fontSize="8" fontFamily='"Golos Text", sans-serif' fontWeight="600" letterSpacing="1.5">TESTING</text>
             </svg>
 
-            {/* Icon overlays above each node */}
-            {triggers.map((t, i) => {
-              const pos = polarToCartesian(CENTER, CENTER, RADIUS, t.angle);
-              const isActive = active === t.id;
-              return (
-                <button
-                  key={`icon-${t.id}`}
-                  onClick={() => setActive(active === t.id ? null : t.id)}
-                  className="absolute flex items-center justify-center"
-                  style={{
-                    left: `${(pos.x / SVG_SIZE) * 100}%`,
-                    top: `${(pos.y / SVG_SIZE) * 100}%`,
-                    transform: "translate(-50%, -68px)",
-                    width: 24,
-                    height: 24,
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    animation: `fade-in 0.5s ease-out ${i * 0.09 + 0.1}s both`,
-                  }}
-                >
-                  <Icon
-                    name={t.icon}
-                    size={14}
-                    style={{ color: isActive ? "#1a1a1a" : "#aaaaaa", transition: "color 0.3s" }}
-                  />
-                </button>
-              );
-            })}
+
           </div>
 
           {/* Info panel */}
