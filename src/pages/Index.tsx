@@ -114,7 +114,7 @@ export default function Index() {
               </defs>
 
               {/* Outer faint ring */}
-              <circle cx={CENTER} cy={CENTER} r={RADIUS + 72} fill="none" stroke="#ddd" strokeWidth="1" />
+              <circle cx={CENTER} cy={CENTER} r={RADIUS + 62} fill="none" stroke="#ddd" strokeWidth="1" />
 
               {/* Dashed orbit ring */}
               <circle
